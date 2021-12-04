@@ -35,6 +35,8 @@ var LivepeerVersion = "undefined"
 
 var MaxSessions = 10
 
+var DynamicCapacity = false
+
 type NodeType int
 
 const (

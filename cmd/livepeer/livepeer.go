@@ -104,6 +104,7 @@ func main() {
 	maxAttempts := flag.Int("maxAttempts", 3, "Maximum transcode attempts")
 	selectRandFreq := flag.Float64("selectRandFreq", 0.3, "Frequency to randomly select unknown orchestrators (on-chain mode only)")
 	maxSessions := flag.Int("maxSessions", 10, "Maximum number of concurrent transcoding sessions for Orchestrator, maximum number or RTMP streams for Broadcaster, or maximum capacity for transcoder")
+	dynamicCapacity := flag.Bool("dynamicCapacity", false, "Dynamically set maximum number of concurrent transcoding sessions for Orchestrator equal to the sum of transcoder capacities.")
 	currentManifest := flag.Bool("currentManifest", false, "Expose the currently active ManifestID as \"/stream/current.m3u8\"")
 	nvidia := flag.String("nvidia", "", "Comma-separated list of Nvidia GPU device IDs (or \"all\" for all available devices)")
 	testTranscoder := flag.Bool("testTranscoder", true, "Test Nvidia GPU transcoding at startup")
@@ -782,8 +783,10 @@ func main() {
 		}
 	}
 
+	core.DynamicCapacity = *dynamicCapacity
+
 	core.MaxSessions = *maxSessions
-	if lpmon.Enabled {
+	if lpmon.Enabled && !core.DynamicCapacity {
 		lpmon.MaxSessions(core.MaxSessions)
 	}
 

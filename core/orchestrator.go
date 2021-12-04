@@ -89,10 +89,23 @@ func (orch *orchestrator) CheckCapacity(mid ManifestID) error {
 	if _, ok := orch.node.SegmentChans[mid]; ok {
 		return nil
 	}
-	if len(orch.node.SegmentChans) >= MaxSessions {
+	if DynamicCapacity && len(orch.node.SegmentChans) >= orch.GetDynamicCapacity() {
+		return ErrOrchCap
+	} else if len(orch.node.SegmentChans) >= MaxSessions {
 		return ErrOrchCap
 	}
 	return nil
+}
+
+func (orch *orchestrator) GetDynamicCapacity() int {
+	currentCapacity := 0
+	for _, v := range orch.node.TranscoderManager.remoteTranscoders {
+		currentCapacity += v.capacity
+	}
+	if monitor.Enabled {
+		monitor.MaxSessions(currentCapacity)
+	}
+	return currentCapacity
 }
 
 func (orch *orchestrator) TranscodeSeg(md *SegTranscodingMetadata, seg *stream.HLSSegment) (*TranscodeResult, error) {
